@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Projets de Contenu{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h1>Mes Projets</h1>
+        <a href="{{ path('app_project_new') }}" class="btn">Nouveau Projet</a>
+    </div>
+
+    {% for project in projects %}
+        <div class="card">
+            <h2>{{ project.title }}</h2>
+            <p class="meta">Créé le {{ project.createdAt|date('d/m/Y H:i') }}</p>
+            <p>{{ project.initialBrief|slice(0, 100) ~ '...' }}</p>
+            <a href="{{ path('app_workflow_show', {'id': project.id}) }}" class="btn btn-secondary">Voir le Workflow</a>
+        </div>
+    {% else %}
+        <p>Aucun projet pour le moment.</p>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Workflow : {{ project.title }}{% endblock %}
+
+{% block body %}
+<div class="container">
+    <a href="{{ path('app_project_index') }}">← Retour aux projets</a>
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+        <h1>{{ project.title }}</h1>
+    </div>
+
+    <div class="card">
+        <h3>Brief Initial</h3>
+        <p><strong>Cible :</strong> {{ project.targetAudience }}</p>
+        <p style="white-space: pre-wrap;">{{ project.initialBrief }}</p>
+    </div>
+
+    {% if project.drafts is empty %}
+        <div class="card" style="text-align: center;">
+            <p>Aucun brouillon généré pour le moment.</p>
+            <form action="{{ path('app_workflow_generate', {'id': project.id}) }}" method="post">
+                <button type="submit" class="btn btn-success">Générer le 1er brouillon (IA)</button>
+            </form>
+        </div>
+    {% else %}
+        <h2>Historique des Brouillons</h2>
+        
+        {% for draft in project.drafts %}
+            <div class="draft">
+                <h3>Version {{ draft.versionNumber }} <span class="meta">- {{ draft.createdAt|date('d/m/Y H:i') }}</span></h3>
+                <div class="card">
+                    <div style="white-space: pre-wrap;">{{ draft.content }}</div>
+                </div>
+
+                {% if draft.feedbacks is empty %}
+                    <form action="{{ path('app_workflow_review', {'id': draft.id}) }}" method="post" style="margin-bottom: 2rem;">
+                        <button type="submit" class="btn btn-secondary">Demander une critique (IA Éditeur)</button>
+                    </form>
+                {% else %}
+                    {% set lastFeedback = draft.feedbacks|last %}
+                    
+                    <div class="feedback {{ lastFeedback.isApproved ? 'approved' : '' }}">
+                        <h4>Retour de l'Éditeur</h4>
+                        <p><strong>Critique :</strong> {{ lastFeedback.critique }}</p>
+                        <p><strong>Suggestions :</strong> {{ lastFeedback.suggestions }}</p>
+                        <p><strong>Statut :</strong> {{ lastFeedback.isApproved ? '✅ Approuvé' : '❌ Rejeté (À améliorer)' }}</p>
+                        
+                        {% if not lastFeedback.isApproved and loop.last %}
+                            <form action="{{ path('app_workflow_improve', {'id': draft.id}) }}" method="post" style="margin-top: 1rem;">
+                                <button type="submit" class="btn">Générer la version suivante avec les corrections (IA)</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}
